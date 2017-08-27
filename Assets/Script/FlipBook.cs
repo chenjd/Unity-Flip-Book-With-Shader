@@ -39,7 +39,6 @@ public class FlipBook : MonoBehaviour, IDragHandler, IPointerDownHandler, IPoint
     public void OnPointerDown(PointerEventData eventData)
     {
         this.isFliping = true;
-        Debug.Log("true");
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -51,19 +50,30 @@ public class FlipBook : MonoBehaviour, IDragHandler, IPointerDownHandler, IPoint
     public void OnPointerUp(PointerEventData eventData)
     {
         this.isFliping = false;
-        Debug.Log("false");
+    }
+
+    void Update()
+    {
+        if(this.pages.Count == 0)
+        {
+            return;
+        }
+        this.frontTex = this.pages[this.curPageIndex % this.pages.Count];
+        this.backTex = this.pages[(this.curPageIndex + 1) % this.pages.Count];
+        
+        this.mat.SetFloat("_CurPageAngle", this.totalPageAngle - this.curPageIndex);
+        this.mat.SetTexture("_MainTex", this.frontTex);
+        this.mat.SetTexture("_BackTex", this.backTex);
     }
 
 
 	private IEnumerator Gravity()
     {
-		while (this.isFliping) {
-			yield return null;
-		}
 
 		while (!this.isFliping) {
 			int targetPageIndex = this.totalPageAngle - this.curPageIndex > 0.5f ? this.curPageIndex + 1 : this.curPageIndex;
-			this.totalPageAngle = Mathf.Lerp (this.totalPageAngle, targetPageIndex, 0.05f);
+
+			this.totalPageAngle = Mathf.Lerp (this.totalPageAngle, targetPageIndex, 0.03f);
 
 			if (Mathf.Abs (this.totalPageAngle - targetPageIndex) < 0.001f)
             {
@@ -73,6 +83,7 @@ public class FlipBook : MonoBehaviour, IDragHandler, IPointerDownHandler, IPoint
 			}
 			yield return null;
 		}
+
 		this.isFliping = true;
 
 		yield return null;

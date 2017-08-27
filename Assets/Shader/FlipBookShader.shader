@@ -70,13 +70,29 @@ Shader "chenjd/FlipBookShader"
 
 			return o;
 		}
+
+		v2f vert_next_page(appdata v)
+		{
+		    v2f o;
+		    o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+		    o.uv.y = 1 - o.uv.y;
+
+			o.vertex = UnityObjectToClipPos(v.vertex);
+
+		    return o;
+		}
 		
 		fixed4 frag_flip (v2f i) : SV_Target
 		{
-			// sample the texture
 			fixed4 col = tex2D(_MainTex, i.uv);
-			// apply fog
 			UNITY_APPLY_FOG(i.fogCoord, col);
+			return col;
+		}
+
+		fixed4 frag_flip_back (v2f i) : SV_Target
+		{
+			i.uv.x = 1 - i.uv.x;
+			fixed4 col = tex2D(_BackTex, i.uv);
 			return col;
 		}
 
@@ -88,22 +104,38 @@ Shader "chenjd/FlipBookShader"
 		Pass
 		{
 			Cull Back
+
 			CGPROGRAM
 			#pragma vertex vert_flip
 			#pragma fragment frag_flip
-			// make fog work
-			#pragma multi_compile_fog
-
-
 			
 			ENDCG
 		}
 
 		//翻起来的背面
-		//pass{}
+		Pass
+		{
+			Cull Front
+
+			CGPROGRAM
+			#pragma vertex vert_flip
+			#pragma fragment frag_flip_back
+			ENDCG
+		}
 
 		//第二页
-		//pass{}
+		Pass
+		{
+			Cull Back
+			Offset 1, 1
+
+			CGPROGRAM
+
+			#pragma vertex vert_next_page
+			#pragma fragment frag_flip_back
+
+			ENDCG
+		}
 
 	}
 }
