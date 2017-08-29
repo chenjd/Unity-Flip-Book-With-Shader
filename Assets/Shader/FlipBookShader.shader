@@ -47,12 +47,16 @@ Shader "chenjd/FlipBookShader"
 
 		float4 flip_book(float4 vertex)
 		{
-			float theta = _CurPageAngle * pi;
-
 			float4 temp = vertex;
 
-			temp.x = vertex.x * cos(theta);
-			temp.y = vertex.x * sin(theta);
+			float theta = _CurPageAngle * pi;
+
+			float flipCurve = exp(-0.1 * pow(vertex.x - 0.5, 2)) * _CurPageAngle;
+
+			theta += flipCurve;
+
+			temp.x = vertex.x * cos(clamp(theta, 0, pi));
+			temp.y = vertex.x * sin(clamp(theta, 0, pi));
 
 			vertex = temp;
 
@@ -116,6 +120,7 @@ Shader "chenjd/FlipBookShader"
 		Pass
 		{
 			Cull Front
+			Offset -1, -1
 
 			CGPROGRAM
 			#pragma vertex vert_flip
